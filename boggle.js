@@ -91,7 +91,7 @@ var tile = {
         // Circle collider for easier diagonals
         let x = this.x + this.width * 0.5;
         let y = this.y + this.height * 0.5;
-        let radius = TILE_SIZE/2;
+        let radius = TILE_SIZE/2 * 0.7; // Smaller circle
         let dx = pointer.x - x;
         let dy = pointer.y - y;
         return Math.sqrt(dx * dx + dy * dy) < radius;
@@ -125,8 +125,10 @@ kontra.pointer.onUp(function (event, object) {
     // See if the selected word 
     var word = getSelectedWord()
     if (findInWords(word)) {
-        if (foundWords.indexOf(word) === -1) doFirework()
-        foundWords.push(word)
+        if (foundWords.indexOf(word) === -1) {
+            doFirework()
+            foundWords.push(word)
+        } 
     }
     selectedIndices = []
 })
