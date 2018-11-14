@@ -6,6 +6,7 @@ body {
   background-color:#ff00ff;
 }
 canvas {
+  background-color:black;
   overscroll-behavior:contain;
   -webkit-touch-callout:none;
   -webkit-user-select:none;
