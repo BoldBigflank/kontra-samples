@@ -246,3 +246,4 @@ this.loop = loop
 
 reset()
 loop.start(); 
+document.getElementById('canvas').addEventListener('touchmove', function(e){console.log("script", e);e.preventDefault();})
