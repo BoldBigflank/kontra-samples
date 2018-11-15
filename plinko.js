@@ -103,7 +103,12 @@ var ballUpdate = function (dt) {
         this.dy = this.y - this.lastPosition.y
         this.lastPosition = {x:this.x, y:this.y}
     } else {
-        if (!this.released) this.ttl = 20 * 60;
+        if (!this.released) {
+            this.ttl = 20 * 60;
+            // Add a little jitter to prevent same drops
+            this.dx = Math.random() * 0.2 - 0.1
+            this.dy = Math.random() * 0.2 - 0.1
+        }
         this.released = true
         this.advance()
     }
@@ -283,7 +288,7 @@ let reset = function() {
             this.context.font = (TILE_SIZE * ((this.gameOver) ? 0.4 : 0.9)) + 'px Courier New'
             this.context.textBaseline = 'top'
             kontra.context.strokeRect(this.x+1, this.y+1, this.width-2, this.height-2)
-            kontra.context.fillStyle = this.gameOver ? COLOR_AMBER : COLOR_GREEN
+            kontra.context.fillStyle = COLOR_AMBER
             let displayTotal = Math.floor(this.total*10)/10
             if (this.gameOver) {
                 kontra.context.fillText("Score: " + displayTotal, 0, kontra.canvas.height * 0.5)
