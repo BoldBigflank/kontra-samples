@@ -272,7 +272,7 @@ let reset = function() {
     let ui = kontra.sprite({
         type: 'ui',
         total: 0,
-        high: 0,
+        high: undefined,
         gameWon: false,
         gameOver: false,
         ballNumber: 0,
@@ -281,10 +281,12 @@ let reset = function() {
             this.total += score
             if (this.ballNumber >= MAX_BALLS) {
                 this.gameOver = true;
-                this.high = kontra.store.get('high') || 0
             }
         },
         update: function (dt) {
+            if (this.high === undefined) {
+                this.high = kontra.store.get('high') || 0
+            }
             let displayTotal = Math.floor(this.total*10)/10
             if (displayTotal > this.high) {
                 this.high = displayTotal
@@ -294,7 +296,7 @@ let reset = function() {
         render: function (dt) {
             kontra.context.save()
             kontra.context.strokeStyle = COLOR_AMBER
-            this.context.font = (TILE_SIZE * ((this.gameOver) ? 0.4 : 0.9)) + 'px Courier New'
+            this.context.font = (TILE_SIZE * (0.5)) + 'px Courier New'
             this.context.textBaseline = 'top'
             kontra.context.strokeRect(this.x+1, this.y+1, this.width-2, this.height-2)
             kontra.context.fillStyle = this.gameOver ? COLOR_AMBER : COLOR_GREEN
@@ -306,7 +308,7 @@ let reset = function() {
             }
             else {
                 let displayBalls = (this.ballNumber+1) + "/" + MAX_BALLS
-                kontra.context.fillText(displayBalls + "-" + displayTotal, 0, 0)
+                kontra.context.fillText(displayBalls + "-" + displayTotal + " (h:"+ this.high + ")", 0, 0)
             }
             kontra.context.restore()
         }
