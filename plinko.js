@@ -98,6 +98,10 @@ var circleBounceOff = function(object) {
 var ballUpdate = function (dt) {
     if (!this.released && kontra.pointer.pressed('left')) {
         this.x = kontra.pointer.x
+        if (!this.lastPosition) this.lastPosition = {x:this.x, y:this.y}
+        this.dx = this.x - this.lastPosition.x
+        this.dy = this.y - this.lastPosition.y
+        this.lastPosition = {x:this.x, y:this.y}
     } else {
         if (!this.released) this.ttl = 20 * 60;
         this.released = true
