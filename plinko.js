@@ -79,7 +79,7 @@ var circleBounceOff = function(object) {
     var a2 = dotProduct(v2, n)
 
     var optimizedP = (2.0 * (a1 - a2)) / (this.mass + object.mass);
-    
+
     this.dx = v1.x - optimizedP * object.mass * n.x
     this.dy = v1.y - optimizedP * object.mass * n.y
     
@@ -97,7 +97,7 @@ var circleBounceOff = function(object) {
 
 var ballUpdate = function (dt) {
     if (!this.released && kontra.pointer.pressed('left')) {
-        this.x += this.dx;
+        this.x = kontra.pointer.x
     } else {
         if (!this.released) this.ttl = 20 * 60;
         this.released = true
@@ -217,7 +217,7 @@ var ball = {
     color: COLOR_AMBER,
     value: 10,
     dy: 0,
-    dx: 2,
+    dx: 0,
     ddy: .06,
     friction: 0.005,
     collidesWith: circleCollidesWith,
