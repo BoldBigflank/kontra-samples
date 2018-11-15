@@ -272,6 +272,7 @@ let reset = function() {
     let ui = kontra.sprite({
         type: 'ui',
         total: 0,
+        high: 0,
         gameWon: false,
         gameOver: false,
         ballNumber: 0,
@@ -280,6 +281,14 @@ let reset = function() {
             this.total += score
             if (this.ballNumber >= MAX_BALLS) {
                 this.gameOver = true;
+                this.high = kontra.store.get('high') || 0
+            }
+        },
+        update: function (dt) {
+            let displayTotal = Math.floor(this.total*10)/10
+            if (displayTotal > this.high) {
+                this.high = displayTotal
+                kontra.store.set('high', this.high);
             }
         },
         render: function (dt) {
@@ -288,10 +297,11 @@ let reset = function() {
             this.context.font = (TILE_SIZE * ((this.gameOver) ? 0.4 : 0.9)) + 'px Courier New'
             this.context.textBaseline = 'top'
             kontra.context.strokeRect(this.x+1, this.y+1, this.width-2, this.height-2)
-            kontra.context.fillStyle = COLOR_AMBER
+            kontra.context.fillStyle = this.gameOver ? COLOR_AMBER : COLOR_GREEN
             let displayTotal = Math.floor(this.total*10)/10
             if (this.gameOver) {
                 kontra.context.fillText("Score: " + displayTotal, 0, kontra.canvas.height * 0.5)
+                kontra.context.fillText("High: " + this.high, 0, kontra.canvas.height * 0.7)
                 kontra.context.fillText("touch to restart", 0, kontra.canvas.height - TILE_SIZE)
             }
             else {
