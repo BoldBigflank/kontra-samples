@@ -108,6 +108,16 @@ var ballUpdate = function (dt) {
         this.advance()
     }
     this.mass = Math.PI * this.radius * this.radius
+
+    // Cap the velocity
+    let velocity = Math.sqrt(this.dx*this.dx + this.dy*this.dy);
+    if (velocity > this.maxVelocity) {
+        this.dx *= this.maxVelocity / velocity
+        this.dy *= this.maxVelocity / velocity
+    }
+
+    let n = normalize({x:this.dx, y:this.dy})
+
     // friction
     if (this.friction && this.released) {
         this.dx *= (1 - this.friction)
@@ -222,6 +232,7 @@ var ball = {
     value: 10,
     dy: 0,
     dx: 0,
+    maxVelocity: 10,
     ddy: .06,
     friction: 0.005,
     collidesWith: circleCollidesWith,
