@@ -85,6 +85,14 @@ var circleBounceOff = function(object) {
     
     object.dx = v2.x + optimizedP * this.mass * n.x
     object.dy = v2.y + optimizedP * this.mass * n.y
+    
+    // OPTIONAL Do sparks at the midpoint
+    var midpoint = {
+        x: this.x + (object.x - this.x) * this.radius / object.radius,
+        y: this.y + (object.y - this.y) * this.radius / object.radius
+    };
+    doSpark(midpoint.x, midpoint.y, a1, this.color)
+    doSpark(midpoint.x, midpoint.y, a2, object.color)
 }
 
 var ballUpdate = function (dt) {
@@ -149,7 +157,7 @@ var circleRender = function (dt) {
 // Sprites
 var peg = {
     type: 'peg',
-    radius: 10,
+    radius: 5,
     width: 2 * BALL_MIN_RADIUS,
     height: 2 * BALL_MIN_RADIUS,
     color: COLOR_GREEN,
@@ -203,7 +211,7 @@ var bucket = {
 
 var ball = {
     type: 'ball',
-    radius: 10,
+    radius: 12,
     width: 2 * BALL_MIN_RADIUS,
     height: 2 * BALL_MIN_RADIUS,
     color: COLOR_AMBER,
@@ -227,7 +235,6 @@ let reset = function() {
             s.x = PEGS_POS_X + col * PEGS_DISTANCE;
             if (row % 2 == 0) s.x += 30;
             s.y = PEGS_POS_Y + row * PEGS_DISTANCE;
-            s.radius = 10;
             sprites.push(s);
 
             // Also a bucket at the bottom
@@ -296,6 +303,43 @@ kontra.pointer.onDown(function () {
         sprites.push(s)
     }
 })
+
+function doSpark(x,y,n,color) {
+    let count = Math.abs(Math.floor(n))
+    for(let i = 0; i < count; i++) {
+        let angle = Math.random()*360;
+        let particle = kontra.sprite({
+            type:'particle',
+            x: x,
+            y: y,
+            dx: n * Math.cos(degreesToRadians(angle)),
+            dy: n * Math.sin(degreesToRadians(angle)),
+            ttl: 20,
+            radius:3,
+            friction: 0.1,
+            color:color,
+            update: function (dt) {
+                if (!this.startTtl) this.startTtl = this.ttl;
+                // this.color = '#' + (this.ttl*15).toString(16) + (this.ttl*15).toString(16) + '00'
+                if (this.friction) {
+                    this.dx *= (1-this.friction)
+                    this.dy *= (1-this.friction)
+                }
+                this.advance()
+
+            },
+            render: function () {
+                kontra.context.save()
+                kontra.context.fillStyle = this.color
+                kontra.context.beginPath()
+                kontra.context.arc(this.x, this.y, this.radius, 0, 2*Math.PI)
+                kontra.context.fill()
+                kontra.context.restore()
+            }
+        })
+        sprites.push(particle)
+    }
+}
 
 function doFirework() {
     let x = Math.random() * kontra.canvas.width
