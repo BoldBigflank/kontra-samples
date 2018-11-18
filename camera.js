@@ -1,30 +1,7 @@
 kontra.init('canvas')
 var sprites = []
 
-// Constants
 const COLOR_AMBER = '#FFBF00'
-const COLOR_GREEN = '#33ff33'
-
-// Helper functions
-var degreesToRadians = function (deg) {
-  return deg * Math.PI / 180;
-}
-
-function lerp (min, max, t) {
-    return min * (1-t) + max * t
-}
-
-function damp (a, b, lambda, dt) {
-    return lerp(a, b, 1 - Math.exp(-lambda * dt))
-}
-
-function clamp (val, a, b) {
-    if (a < b) {
-        return Math.max(a, Math.min(b, val)) 
-    } else {
-        return Math.max(b, Math.min(a, val)) 
-    }
-}
 
 var camera = {
     x: 0,
@@ -47,16 +24,9 @@ var camera = {
     },
     update: function (dt) {
         if (!this.initialized) {
-            // this.video = document.createElement("video")
-            // this.video.setAttribute('playsinline', '')
-            // this.video.setAttribute('autoplay', '')
-            // this.video.setAttribute('style', 'display:none;')
-            // document.body.appendChild(this.video)
             this.video = document.getElementById('video')
             
             this.canvas = document.createElement('canvas');
-            this.canvas.setAttribute('style', 'display:none;')
-            document.body.appendChild(this.canvas)
 
             navigator.mediaDevices.getUserMedia({
                 audio: false, video: true
@@ -117,12 +87,6 @@ let reset = function() {
     cameraButtonSprite.camera = s
     kontra.pointer.track(cameraButtonSprite)
     sprites.push(cameraButtonSprite)
-
-    // Mask
-
-    // Drawing
-
-
 }
 
 // Boilerplate gameloop
