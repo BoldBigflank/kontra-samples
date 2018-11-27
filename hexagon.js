@@ -14,17 +14,6 @@ var degreesToRadians = function (deg) {
   return deg * Math.PI / 180;
 }
 
-let tiltCamera = {
-    update: function (dt) {
-   },
-    shift: function () {
-        
-    },
-    unshift: function () {
-
-    }
-}
-
 // Sprites
 let player = {
     angle: 180,
@@ -209,8 +198,8 @@ var loop = kontra.gameLoop({
         if (this.time === undefined) this.time = 0
         if (this.angle1 === undefined) this.angle1 = 0
         this.time++
-        this.angle1 = this.time * 0.7
-        this.angle2 = 45 // Math.sin(degreesToRadians(this.time))
+        this.angle1 = this.time * 0.7 // rotation
+        this.angle2 = 45 // tilt
 
         sprites.forEach(sprite => sprite.update(dt))
         sprites = sprites.filter(sprite => sprite.isAlive());
