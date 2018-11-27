@@ -1,6 +1,6 @@
 kontra.init('canvas')
 var sprites = []
-var playerSprite, uiSprite
+var playerSprite, pathSprite, uiSprite
 
 // Constants
 const COLOR_GREEN = '#33ff33'
@@ -35,6 +35,8 @@ let player = {
     x: kontra.canvas.width * 0.5,
     desiredX: kontra.canvas.width * 0.5,
     y: 150,
+    dy: 3,
+    desiredDY: 3,
     width:50,
     height:50,
     speed: 4,
@@ -56,10 +58,28 @@ let player = {
             this.desiredX = clamp(this.desiredX, 0, kontra.canvas.width)
         }
         this.x = damp(this.x, this.desiredX, 4, dt)
+        let pathIndex = Math.floor((kontra.canvas.height - this.y) / PATH_DISTANCE)
+        let pathPoint = pathSprite.points[pathIndex]
+        if (pathPoint) {
+            let onThePath = Math.abs(pathPoint.x - this.x) < this.width
+            let l = onThePath ? 2 : 8
+            this.desiredDY = onThePath ? 6 : 2
+            this.dy = damp(this.dy, this.desiredDY, l, dt)
+        }
+
+        // Did it squish any lemmings?
+        sprites.forEach(s=>{
+            if (s.type !== 'lemming') return
+            if (this.collidesWith(s)) {
+                s.color = '#ff0000'
+                s.dx = 0
+            }
+        })
     }
 }
 
 let lemming = {
+    type: 'lemming',
     x:0,
     y:0,
     anchor: {
@@ -72,11 +92,13 @@ let lemming = {
     color: COLOR_AMBER,
     initialize: function () {
         this.x = Math.random() * kontra.canvas.width
-        this.y = kontra.canvas.height
+        this.y = kontra.canvas.height + Math.random() * 150
         this.dx = Math.random() - 0.5
         this.dy = -0.75 - Math.random() * 0.5
+        this.color = COLOR_AMBER
     },
     update: function(dt) {
+        this.dy = (this.color == COLOR_AMBER) ? 3 - playerSprite.dy : -1 * playerSprite.dy
         this.advance()
         if (this.y < 0) this.initialize()
         if (this.x < 0) this.dx = Math.abs(this.dx)
@@ -94,41 +116,16 @@ let lemming = {
     }
 }
 
-let newpath = {
-    color: COLOR_GREEN,
-    points:[],
-    dy: -2.4,
-    update: function(dt) {
-        if (this.points.length == 0) { // initialize
-            let x = 0.5 * kontra.canvas.width
-            for (let i = 0; i < kontra.canvas.height; i++) {
-                x = clamp(x+Math.random() - 0.5, 0, kontra.canvas.width)
-                this.points.push({x:x, width:50})
-            }
-        }
-        this.y += this.dy
-    },
-    render: function (dt) {
-        kontra.context.fillStyle = this.color
-        this.points.forEach((p, i) => {
-            let x = p.x - 0.5 * p.width
-            let y = this.y + i
-            kontra.context.fillRect(x, y, p.width, 1)
-        })
-    }
-}
-
 let path = {
     angle1: 0,
     angle2: 75,
     color: COLOR_GREEN,
     points: [{ x: 240, y: 0, width: 100 }],
-    dy: 3,
     update: function (dt) {
         this.x = 0.5 * kontra.canvas.width
         this.y = kontra.canvas.height
         // move each point down
-        this.points.forEach(p => p.y += this.dy)
+        this.points.forEach(p => p.y += playerSprite.dy)
         // Add a point if it's ready
         if (this.points[0].y > 0) {
             let firstPoint = this.points[0]
@@ -154,7 +151,6 @@ let path = {
             let y1 = kontra.canvas.height - lastPoint.y
             let y2 = kontra.canvas.height - p.y
 
-            // console.log(x1, x2, x3, x4, y1, y2)
             kontra.context.beginPath()
             kontra.context.moveTo(x1, y1)
             kontra.context.lineTo(x2, y1)
@@ -163,34 +159,7 @@ let path = {
             kontra.context.closePath()
             kontra.context.fill()
             lastPoint = p
-            // let startX = p.x - p.width * 0.5
-            // let ratio = 1 - p.y / kontra.canvas.height
-            // let perspectiveX = startX * (1 + ratio) - 0.5 * ratio * kontra.canvas.width
-            // kontra.context.lineTo(perspectiveX, this.y - p.y)
-            // if (i == this.points.length - 1) {
-            //     kontra.context.lineTo(0, this.y - p.y)
-            // }
         })
-        
-        // // // draw the right side
-        // kontra.context.beginPath()
-        // this.points.forEach((p,i) => {
-        //     if (i == 0) {
-        //         kontra.context.moveTo(kontra.canvas.width, this.y - p.y)
-        //     }
-        //     let startX = p.x + p.width * 0.5
-        //     let ratio = 1 - p.y / kontra.canvas.height
-        //     let perspectiveX = startX * (1 + ratio) - 0.5 * ratio * kontra.canvas.width
-        //     kontra.context.lineTo(perspectiveX, this.y - p.y)
-        //     if (i == this.points.length - 1) {
-        //         kontra.context.lineTo(kontra.canvas.width, this.y - p.y)
-        //     }
-        // })
-        // kontra.context.closePath()
-        // kontra.context.fill()
-        
-        // Unshift
-        // kontra.context.restore()
     }
 }
 
@@ -261,30 +230,13 @@ let reset = function() {
     for (let i = 0; i < 12; i++) {
         let l = kontra.sprite(lemming)
         l.initialize()
-        l.y = -1 * i * 90
+        l.y = i * PATH_DISTANCE + kontra.canvas.height * 0.5
         sprites.push(l)
     }
-    // // background
-    // let b = kontra.sprite(background)
-    // sprites.push(b)
-
-    // // Create 1-4 bars for each level, push them out 
-    // for (let i = 0; i < BAR_LEVELS; i++) {
-    //     let barNumber = 2 + Math.floor(Math.random() * 3)
-    //     let barStartAngle = Math.floor(Math.random() * 5) * 60
-    //     for (let j = 0; j < barNumber; j++) {
-    //         // Rotate it around the hexagon
-    //         let s = kontra.sprite(bar)
-    //         s.level = i + DELAY_BARS
-    //         s.a1 = barStartAngle + j * 60
-    //         s.a2 = s.a1 + 60
-    //         sprites.push(s)
-    //     }
-    // }
 
     // Path
-    let p = kontra.sprite(path)
-    sprites.unshift(p)
+    pathSprite = kontra.sprite(path)
+    sprites.unshift(pathSprite)
 
     // Player
     playerSprite = kontra.sprite(player)
