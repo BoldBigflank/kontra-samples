@@ -49,13 +49,7 @@ let player = {
         if (this.data) {
             this.desiredX = (clamp(this.data, -23, 23) + 23) / 46 * kontra.canvas.width
         } else {
-            if (kontra.keys.pressed('left') || kontra.keys.pressed('a')) {
-                this.desiredX -= this.speed
-            }
-            if (kontra.keys.pressed('right') || kontra.keys.pressed('d')) {
-                this.desiredX += this.speed
-            }
-            this.desiredX = clamp(this.desiredX, 0, kontra.canvas.width)
+            this.desiredX = clamp(kontra.pointer.x, 0, kontra.canvas.width)
         }
         this.x = damp(this.x, this.desiredX, 4, dt)
         let pathIndex = Math.floor((kontra.canvas.height - this.y) / PATH_DISTANCE)
