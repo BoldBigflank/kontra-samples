@@ -1,0 +1,26 @@
+<html>
+    <head>
+        <title>Boulder</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/> 
+        <meta http-equiv="ScreenOrientation" content="autoRotate:disabled">
+        <link rel="stylesheet" type="text/css" href="main.css">
+        <style>
+            .visuallyhidden { 
+              position: absolute; 
+              overflow: hidden; 
+              clip: rect(0 0 0 0); 
+              height: 1px; width: 1px; 
+              margin: -1px; padding: 0; border: 0; 
+            }
+        </style>
+    </head>
+    <body>
+        <canvas id='canvas' width=480 height=600 style="background-color:white;">
+        </canvas>
+        <script src="kontra.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@hughsk/fulltilt@0.7.1/dist/fulltilt.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/gyronorm@2.0.6/lib/gyronorm.min.js"></script>
+        <script src="boulder.js"></script>
+        <div>Tap left and right side to rotate. Avoid obstacles</div>
+    </body>
+</html>
