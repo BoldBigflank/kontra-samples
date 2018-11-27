@@ -33,6 +33,7 @@ function clamp (val, a, b) {
 // Sprites
 let player = {
     x: kontra.canvas.width * 0.5,
+    desiredX: kontra.canvas.width * 0.5,
     y: 150,
     width:50,
     height:50,
@@ -44,16 +45,17 @@ let player = {
     },
     update: function (dt) {
         if (this.data) {
-            this.x = (clamp(this.data, -23, 23) + 23) / 46 * kontra.canvas.width
+            this.desiredX = (clamp(this.data, -23, 23) + 23) / 46 * kontra.canvas.width
         } else {
             if (kontra.keys.pressed('left') || kontra.keys.pressed('a')) {
-                this.x -= this.speed
+                this.desiredX -= this.speed
             }
             if (kontra.keys.pressed('right') || kontra.keys.pressed('d')) {
-                this.x += this.speed
+                this.desiredX += this.speed
             }
-            this.x = clamp(this.x, 0, kontra.canvas.width)
+            this.desiredX = clamp(this.desiredX, 0, kontra.canvas.width)
         }
+        this.x = damp(this.x, this.desiredX, 4, dt)
     }
 }
 
@@ -66,7 +68,7 @@ let lemming = {
     },
     width:10,
     height:10,
-    dy: -1,
+    dy: -2,
     color: COLOR_AMBER,
     initialize: function () {
         this.x = Math.random() * kontra.canvas.width
@@ -88,8 +90,31 @@ let lemming = {
         kontra.context.translate(this.x, this.y)
         kontra.context.fillStyle = this.color
         kontra.context.fillRect(anchorWidth, anchorHeight, this.width, this.height )
-        console.log("render", this.width)
         kontra.context.restore()
+    }
+}
+
+let newpath = {
+    color: COLOR_GREEN,
+    points:[],
+    dy: -2.4,
+    update: function(dt) {
+        if (this.points.length == 0) { // initialize
+            let x = 0.5 * kontra.canvas.width
+            for (let i = 0; i < kontra.canvas.height; i++) {
+                x = clamp(x+Math.random() - 0.5, 0, kontra.canvas.width)
+                this.points.push({x:x, width:50})
+            }
+        }
+        this.y += this.dy
+    },
+    render: function (dt) {
+        kontra.context.fillStyle = this.color
+        this.points.forEach((p, i) => {
+            let x = p.x - 0.5 * p.width
+            let y = this.y + i
+            kontra.context.fillRect(x, y, p.width, 1)
+        })
     }
 }
 
@@ -98,7 +123,7 @@ let path = {
     angle2: 75,
     color: COLOR_GREEN,
     points: [{ x: 240, y: 0, width: 100 }],
-    dy: 2.4,
+    dy: 3,
     update: function (dt) {
         this.x = 0.5 * kontra.canvas.width
         this.y = kontra.canvas.height
@@ -112,43 +137,60 @@ let path = {
     },
     render: function (dt) {
         // draw the left side
-        let xShift = this.x
         kontra.context.fillStyle = this.color
-        kontra.context.beginPath()
+        let lastPoint
         this.points.forEach((p,i) => {
             if (i == 0) {
-                kontra.context.moveTo(0, this.y - p.y)
+                lastPoint = p
+                return
             }
-            let startX = p.x - p.width * 0.5
-            let ratio = 1 - p.y / kontra.canvas.height
-            let perspectiveX = startX * (1 + ratio) - 0.5 * ratio * kontra.canvas.width
-            kontra.context.lineTo(perspectiveX, this.y - p.y)
-            if (i == this.points.length - 1) {
-                kontra.context.lineTo(0, this.y - p.y)
-            }
-        })
-        kontra.context.closePath()
-        kontra.context.fill()
+            let width1 = lastPoint.width * (1 + (1 - lastPoint.y / kontra.canvas.height))
+            let x1 = lastPoint.x - 0.5 * width1
+            let x2 = lastPoint.x + 0.5 * width1
+            let width2 = p.width * (1 + (1 - p.y / kontra.canvas.height))
+            let x3 = p.x + 0.5 * width2
+            let x4 = p.x - 0.5 * width2
 
-        // // draw the right side
-        kontra.context.beginPath()
-        this.points.forEach((p,i) => {
-            if (i == 0) {
-                kontra.context.moveTo(kontra.canvas.width, this.y - p.y)
-            }
-            let startX = p.x + p.width * 0.5
-            let ratio = 1 - p.y / kontra.canvas.height
-            let perspectiveX = startX * (1 + ratio) - 0.5 * ratio * kontra.canvas.width
-            kontra.context.lineTo(perspectiveX, this.y - p.y)
-            if (i == this.points.length - 1) {
-                kontra.context.lineTo(kontra.canvas.width, this.y - p.y)
-            }
+            let y1 = kontra.canvas.height - lastPoint.y
+            let y2 = kontra.canvas.height - p.y
+
+            // console.log(x1, x2, x3, x4, y1, y2)
+            kontra.context.beginPath()
+            kontra.context.moveTo(x1, y1)
+            kontra.context.lineTo(x2, y1)
+            kontra.context.lineTo(x3, y2)
+            kontra.context.lineTo(x4, y2)
+            kontra.context.closePath()
+            kontra.context.fill()
+            lastPoint = p
+            // let startX = p.x - p.width * 0.5
+            // let ratio = 1 - p.y / kontra.canvas.height
+            // let perspectiveX = startX * (1 + ratio) - 0.5 * ratio * kontra.canvas.width
+            // kontra.context.lineTo(perspectiveX, this.y - p.y)
+            // if (i == this.points.length - 1) {
+            //     kontra.context.lineTo(0, this.y - p.y)
+            // }
         })
-        kontra.context.closePath()
-        kontra.context.fill()
+        
+        // // // draw the right side
+        // kontra.context.beginPath()
+        // this.points.forEach((p,i) => {
+        //     if (i == 0) {
+        //         kontra.context.moveTo(kontra.canvas.width, this.y - p.y)
+        //     }
+        //     let startX = p.x + p.width * 0.5
+        //     let ratio = 1 - p.y / kontra.canvas.height
+        //     let perspectiveX = startX * (1 + ratio) - 0.5 * ratio * kontra.canvas.width
+        //     kontra.context.lineTo(perspectiveX, this.y - p.y)
+        //     if (i == this.points.length - 1) {
+        //         kontra.context.lineTo(kontra.canvas.width, this.y - p.y)
+        //     }
+        // })
+        // kontra.context.closePath()
+        // kontra.context.fill()
         
         // Unshift
-        kontra.context.restore()
+        // kontra.context.restore()
     }
 }
 
