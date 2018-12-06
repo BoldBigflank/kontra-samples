@@ -250,11 +250,11 @@ var ui = {
     nextPlane: 1,
     update: function (dt) {
         if (this.highScore === undefined) {
-            this.highScore = kontra.store.get('high') || 0
+            this.highScore = kontra.store.get('flight-high') || 0
         }
         if (this.score > this.highScore) {
             this.highScore = this.score
-            kontra.store.set('high', this.score)
+            kontra.store.set('flight-high', this.score)
         }
         // time out some planes to fly in
         if (this.nextPlane === undefined) this.nextPlane = 60 * 6

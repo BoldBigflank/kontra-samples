@@ -113,12 +113,12 @@ let ui = {
     time: 0,
     update: function (dt) {
         if (this.time === undefined) this.time = 0
-        if (this.high === undefined) this.high = kontra.store.get('high') || 0
+        if (this.high === undefined) this.high = kontra.store.get('hexagon-high') || 0
 
         this.time++
         if (this.time > this.high) {
             this.high = this.time
-            kontra.store.set('high', this.time)
+            kontra.store.set('hexagon-high', this.time)
         }
     },
     render: function (dt) {

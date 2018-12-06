@@ -285,12 +285,12 @@ let reset = function() {
         },
         update: function (dt) {
             if (this.high === undefined) {
-                this.high = kontra.store.get('high') || 0
+                this.high = kontra.store.get('plinko-high') || 0
             }
             let displayTotal = Math.floor(this.total*10)/10
             if (displayTotal > this.high) {
                 this.high = displayTotal
-                kontra.store.set('high', this.high);
+                kontra.store.set('plinko-high', this.high);
             }
         },
         render: function (dt) {

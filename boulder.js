@@ -184,12 +184,12 @@ let ui = {
     },
     update: function (dt) {
         if (this.time === undefined) this.time = 0
-        if (this.high === undefined) this.high = kontra.store.get('high') || 0
+        if (this.high === undefined) this.high = kontra.store.get('boulder-high') || 0
 
         this.time++
         if (this.time > this.high) {
             this.high = this.time
-            kontra.store.set('high', this.time)
+            kontra.store.set('boulder-high', this.time)
         }
     },
     render: function (dt) {
