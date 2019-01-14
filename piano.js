@@ -15,20 +15,20 @@ var key = {
     y: 0,
     onDown: function() {
         this.selected = true
-        if (ac === undefined) ac = new AudioContext()
+        this.color = COLOR_AMBER
+        if (ac === undefined) ac = new (window.AudioContext || window.webkitAudioContext)()
         this.o = ac.createOscillator()
         this.g = ac.createGain()
-        this.o.connect(this.g)
+        this.o.connect(ac.destination)
         this.o.frequency.value = this.freq || 880
         this.g.connect(ac.destination)
         this.o.start(0)
-        this.color = COLOR_AMBER
     },
     onUp: function() {
+        this.color = this.originalColor
         if (!ac) return
         this.selected = false
         if (this.o) this.o.stop()
-        this.color = this.originalColor
     },
     update: function (dt) {
         if (this.selected && !kontra.pointer.pressed('left')) {
