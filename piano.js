@@ -8,8 +8,8 @@ const COLOR_GREEN = '#33ff33'
 const COLOR_AMBER = '#FFBF00'
 
 var key = {
-    originalColor: COLOR_GREEN,
-    color: COLOR_GREEN,
+    originalColor: "#ffffff",
+    color: "#ffffff",
     width: 56,
     height: 384,
     y: 0,
@@ -34,6 +34,11 @@ var key = {
         if (this.selected && !kontra.pointer.pressed('left')) {
             this.onUp()
         }
+    },
+    render: function(dt) {
+        kontra.context.fillStyle = this.color
+        kontra.context.fillRect(this.x, this.y, this.width, this.height)
+        kontra.context.strokeRect(this.x, this.y, this.width, this.height)
     }
 }
 
