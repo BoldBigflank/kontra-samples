@@ -21,6 +21,7 @@ kontra = {
     // @endif
 
     this.context = canvasEl.getContext('2d');
+    this.context.imageSmoothingEnabled = false;
     this._init();
   },
 
@@ -611,32 +612,20 @@ kontra = {
   function pointerHandler(e, event) {
     if (!kontra.canvas) return;
 
-    let pageX, pageY;
+    let clientX, clientY;
 
-    if (e.type.indexOf('mouse') !== -1) {
-      pageX = e.pageX;
-      pageY = e.pageY;
-    }
-    else {
-      // touchstart uses touches while touchend uses changedTouches
-      // @see https://stackoverflow.com/questions/17957593/how-to-capture-touchend-coordinates
-      pageX = (e.touches[0] || e.changedTouches[0]).pageX;
-      pageY = (e.touches[0] || e.changedTouches[0]).pageY;
+    if (['touchstart', 'touchmove', 'touchend'].indexOf(e.type) !== -1) {
+      clientX = (e.touches[0] || e.changedTouches[0]).clientX;
+      clientY = (e.touches[0] || e.changedTouches[0]).clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
     }
 
-    let x = pageX - kontra.canvas.offsetLeft;
-    let y = pageY - kontra.canvas.offsetTop;
-    let el = kontra.canvas;
-
-    while ( (el = el.offsetParent) ) {
-      x -= el.offsetLeft;
-      y -= el.offsetTop;
-    }
-
-    // take into account the canvas scale
-    let scale = kontra.canvas.offsetHeight / kontra.canvas.height;
-    x /= scale;
-    y /= scale;
+    let ratio = kontra.canvas.height / kontra.canvas.offsetHeight;
+    let rect = kontra.canvas.getBoundingClientRect();
+    let x = (clientX - rect.left) * ratio;
+    let y = (clientY - rect.top) * ratio;
 
     pointer.x = x;
     pointer.y = y;
@@ -780,7 +769,7 @@ kontra = {
 
   /**
    * Object pool. The pool will grow in size to accommodate as many objects as are needed.
-   * Unused items are at the front of the pool and in use items are at the of the pool.
+   * Unused items are at the front of the pool and in use items are at the end of the pool.
    * @memberof kontra
    *
    * @param {object} properties - Properties of the pool.
@@ -811,7 +800,7 @@ kontra = {
       // start the pool with an object
       objects: [properties.create()],
       size: 1,
-      maxSize: properties.maxSize || Infinity,
+      maxSize: properties.maxSize || 1024,
 
       /**
        * Get an object from the pool.
@@ -916,6 +905,7 @@ kontra = {
     };
   };
 })();
+
 (function() {
 
   /**
@@ -1278,7 +1268,7 @@ kontra = {
      * @param {number} [properties.ddx] - Change in X velocity.
      * @param {number} [properties.ddy] - Change in Y velocity.
      *
-     * @param {number} [properties.ttl=Infinity] - How may frames the sprite should be alive.
+     * @param {number} [properties.ttl=0] - How may frames the sprite should be alive.
      * @param {number} [properties.rotation=0] - Rotation in radians of the sprite.
      * @param {number} [properties.anchor={x:0,y:0}] - The x and y origin of the sprite. {0,0} is the top left corner of the sprite, {1,1} is the bottom right corner.
      * @param {Context} [properties.context=kontra.context] - Provide a context for the sprite to draw on.
@@ -1308,7 +1298,7 @@ kontra = {
 
       // defaults
       this.width = this.height = this.rotation = 0;
-      this.ttl = Infinity;
+      this.ttl = 0;
       this.anchor = {x: 0, y: 0};
       this.context = kontra.context;
 
@@ -1320,8 +1310,8 @@ kontra = {
       // image sprite
       if (temp = properties.image) {
         this.image = temp;
-        this.width = temp.width;
-        this.height = temp.height;
+        this.width = (properties.width !== undefined) ? properties.width : temp.width;
+        this.height = (properties.height !== undefined) ? properties.height : temp.height;
       }
       // animation sprite
       else if (temp = properties.animations) {
@@ -1335,8 +1325,8 @@ kontra = {
         }
 
         this._ca = firstAnimation;
-        this.width = firstAnimation.width;
-        this.height = firstAnimation.height;
+        this.width = this.width || firstAnimation.width;
+        this.height = this.height || firstAnimation.height;
       }
 
       return this;
@@ -1559,12 +1549,18 @@ kontra = {
       }
 
       if (this.image) {
-        this.context.drawImage(this.image, anchorWidth, anchorHeight);
+        this.context.drawImage(
+          this.image,
+          0, 0, this.image.width, this.image.height,
+          anchorWidth, anchorHeight, this.width, this.height
+        );
       }
       else if (this._ca) {
         this._ca.render({
           x: anchorWidth,
           y: anchorHeight,
+          width: this.width,
+          height: this.height,
           context: this.context
         });
       }
@@ -1692,6 +1688,8 @@ kontra = {
      * @param {object} properties - How to draw the animation.
      * @param {number} properties.x - X position to draw.
      * @param {number} properties.y - Y position to draw.
+     * @param {number} properties.width - width of the sprite.
+     * @param {number} properties.height - height of the sprit.
      * @param {Context} [properties.context=kontra.context] - Provide a context for the sprite to draw on.
      */
     render(properties) {
@@ -1700,14 +1698,16 @@ kontra = {
       // get the row and col of the frame
       let row = this.frames[this._f] / this.spriteSheet._f | 0;
       let col = this.frames[this._f] % this.spriteSheet._f | 0;
-
-      (properties.context || kontra.context).drawImage(
+      let width = (properties.width !== undefined) ? properties.width : this.spriteSheet.frame.width
+      let height = (properties.height !== undefined) ? properties.height : this.spriteSheet.frame.height
+      let context = (properties.context || kontra.context)
+      context.drawImage(
         this.spriteSheet.image,
-        col * this.width + (col * 2 + 1) * this.margin,
-        row * this.height + (row * 2 + 1) * this.margin,
-        this.width, this.height,
+        col * this.spriteSheet.frame.width + (col * 2 + 1) * this.margin,
+        row * this.spriteSheet.frame.height + (row * 2 + 1) * this.margin,
+        this.spriteSheet.frame.width, this.spriteSheet.frame.height,
         properties.x, properties.y,
-        this.width, this.height
+        width, height
       );
     }
   }
