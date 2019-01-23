@@ -1298,7 +1298,7 @@ kontra = {
 
       // defaults
       this.width = this.height = this.rotation = 0;
-      this.ttl = 0;
+      this.ttl = Infinity;
       this.anchor = {x: 0, y: 0};
       this.context = kontra.context;
 

@@ -1,45 +1,95 @@
 kontra.init('canvas')
 var loop
 var sprites = []
-var ac
-var ss, ssImage
+var ss // spritesheet
+var gameSprite // Where the magic happens
+
 
 // Constants
 const COLOR_GREEN = '#33ff33'
 const COLOR_AMBER = '#FFBF00'
+const GAME_BEATS = [0,0,0,0,
+                    1,1,1,1,
+                    2,2,2,2,
+                    3,3,3,3,
+                    4,4,4,4,
+                    5,5,5,5] // Shuffle this sucker
+const ACTION_POSITIONS = [
+    {x: 32 * 5, y: 32 * 5},
+    {x: 32 * 5, y: 32 * 7},
+    {x: 32 * 5, y: 32 * 9},
 
-var key = {
-    originalColor: "#ffffff",
-    color: "#ffffff",
-    width: 56,
-    height: 384,
-    y: 0,
-    onDown: function() {
-        this.selected = true
-        this.color = COLOR_AMBER
-        if (ac === undefined) ac = new (window.AudioContext || window.webkitAudioContext)()
-        this.o = ac.createOscillator()
-        this.g = ac.createGain()
-        this.o.connect(ac.destination)
-        this.o.frequency.value = this.freq || 880
-        this.g.connect(ac.destination)
-        this.o.start(0)
-    },
-    onUp: function() {
-        this.color = this.originalColor
-        if (!ac) return
-        this.selected = false
-        if (this.o) this.o.stop()
+    {x: 32 * 7, y: 32 * 9},
+    {x: 32 * 7, y: 32 * 7},
+    {x: 32 * 7, y: 32 * 5}
+]
+
+// Assets
+const ssImage = 'images/pirates.v1.png'
+const shipImage = 'images/ship.png'
+
+
+// Helper functions
+function shuffle(array) {
+    var m = array.length, t, i;
+
+    // While there remain elements to shuffle…
+    while (m) {
+        // Pick a remaining element…
+        i = Math.floor(Math.random() * m--);
+
+        // And swap it with the current element.
+        t = array[m];
+        array[m] = array[i];
+        array[i] = t;
+    }
+
+    return array;
+}
+
+// Sprites
+var actionButton = {
+    type: 'action',
+    anchor: {x: 0.5, y: 0.5},
+    width:32,
+    height:32,
+    index: 0,
+    active: false,
+    color: "red",
+    // A button that accepts input. Visible when it's correct
+    onDown: function(e) {
+        // Tell the gamestuff it's hit
+        gameSprite.buttonHit(this.index)
     },
     update: function (dt) {
-        if (this.selected && !kontra.pointer.pressed('left')) {
-            this.onUp()
-        }
+        this.active = gameSprite.beats[gameSprite.beatsIndex] === this.index
+        this.color = this.active ? COLOR_GREEN : COLOR_AMBER
     },
-    render: function(dt) {
-        kontra.context.fillStyle = this.color
-        kontra.context.fillRect(this.x, this.y, this.width, this.height)
-        kontra.context.strokeRect(this.x, this.y, this.width, this.height)
+    render: function (dt) {
+        if (this.active) {
+            this.draw()
+        }
+    }
+}
+
+var game = {
+    buttonHit: function (i) {
+        if (i === this.beats[this.beatsIndex]) {
+            // Correct!
+            console.log("correct!")
+        } else {
+            // Incorrect!
+            console.log("Incorrect")
+        }
+        this.beatsIndex++
+    },
+    update: function (dt) {
+        // Show the correct
+        let currentBeat = this.beats[this.beatsIndex]
+        let buttons = sprites.filter(s => { s.type === 'action' })
+        buttons.forEach(b => {
+            b.active = (b.index === currentBeat)
+        })
     }
 }
 
@@ -47,68 +97,84 @@ var key = {
 let reset = function() {
     sprites.forEach(s=>s.ttl=-1)
 
-    if (!ss) {
-        console.log("ssImage", ssImage)
-        ss = kontra.spriteSheet({
-            image: ssImage,
-            frameWidth: 16,
-            frameHeight: 16,
-            animations:  {
-                p1: {
-                    frames: 18,
-                    loop: false
-                },
-                p2: {
-                    frames: 19,
-                    loop: false
-                },
-                p3: {
-                    frames: 20,
-                    loop: false
-                },
-                p4: {
-                    frames: 21,
-                    loop: false
-                }
-            }
-        })
-    }
-    // Put the background up
-    let shipImage = new Image()
-    shipImage.onload = function () {
-        let back = kontra.sprite({
-            anchor: {x:0.5,y:0.5},
-            image: shipImage,
-            x: 240,
-            y: 240,
-            // update: function (dt) {
-            //     this.advance()
-            //     this.width += 4
-            //     this.height += 4
-            // }
-        })
-        sprites.unshift(back)
-    }
-    shipImage.src = 'images/ship.png'
-    // Place the two players
-    let p1 = kontra.sprite({
-        anchor: {x:0.5, y:0.5},
-        x: 32 * 5,
-        y: 32 * 8,
-        width: 32,
-        height: 32,
-        animations: ss.animations,
-        // update: function (dt) {
-        //     this.advance()
-        //     this.width += 0.1
-        //     this.height += 0.2
-        // }
-    })
-    p1.playAnimation('p1')
-    sprites.push(p1)
+    // The Game sprite
+    gameSprite = kontra.sprite(game)
+    gameSprite.beats = shuffle(GAME_BEATS.slice(0)) // Make a fresh shuffle
+    gameSprite.beatsIndex = 0
+    sprites.push(gameSprite)
 
-    // Put action buttons in six spots
-    // Make a sequence, if necessary
+    // Images
+    kontra.assets.load(ssImage, shipImage)
+    .then((images) => {
+        let background = kontra.sprite({
+            image: kontra.assets.images[shipImage],
+            x: 0,
+            y: 0,
+            width:480,
+            height:480
+        })
+        sprites.unshift(background)
+        // Spritesheet
+        if (!ss) {
+            ss = kontra.spriteSheet({
+                image: kontra.assets.images[ssImage],
+                frameWidth: 16,
+                frameHeight: 16,
+                animations:  {
+                    p1: {
+                        frames: 18,
+                        loop: false
+                    },
+                    p2: {
+                        frames: 19,
+                        loop: false
+                    },
+                    p3: {
+                        frames: 20,
+                        loop: false
+                    },
+                    p4: {
+                        frames: 21,
+                        loop: false
+                    }
+                }
+            })
+        }
+
+        // Place the two players
+        let p1 = kontra.sprite({
+            anchor: {x:0.5, y:0.5},
+            x: 32 * 5,
+            y: 32 * 8,
+            width: -32,
+            height: 32,
+            animations: ss.animations
+        })
+        p1.playAnimation('p1')
+        sprites.push(p1)
+
+        // Place the two players
+        let p2 = kontra.sprite({
+            anchor: {x:0.5, y:0.5},
+            x: 32 * 7,
+            y: 32 * 8,
+            width: 32,
+            height: 32,
+            animations: ss.animations
+        })
+        p2.playAnimation('p2')
+        sprites.push(p2)
+
+        // The action buttons
+        for (let i = 0; i < ACTION_POSITIONS.length; i++) {
+            let s = kontra.sprite(actionButton)
+            s.index = i
+            s.x = ACTION_POSITIONS[i].x
+            s.y = ACTION_POSITIONS[i].y
+            sprites.push(s)
+            kontra.pointer.track(s)
+        }
+    })
 
     loop.start();
 }
@@ -135,11 +201,4 @@ kontra.canvas.addEventListener('mousedown', function (e) {
 kontra.canvas.addEventListener('touchstart', function (e) {
     if (loop.isStopped) reset()
 })
-
-ssImage = new Image()
-ssImage.onload = function() {
-    console.log("loaded")
-    reset()
-}
-ssImage.src = 'images/pirates.v1.png'
 
