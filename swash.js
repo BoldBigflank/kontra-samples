@@ -48,6 +48,22 @@ function shuffle(array) {
 }
 
 // Sprites
+var time = {
+    x: 0,
+    y: 0,
+    dy: -60,
+    value: 0,
+    ttl: 30,
+    render: function(dt) {
+        kontra.context.save()
+        kontra.context.font = '32px Courier New'
+        kontra.context.fillStyle = (this.value < 30) ? COLOR_GREEN : (this.value < 60) ? COLOR_AMBER : 'red'
+        kontra.context.fillText(this.value, this.x, this.y)
+        kontra.context.restore()
+    }
+}
+
+
 var actionButton = {
     type: 'action',
     anchor: {x: 0.5, y: 0.5},
@@ -56,14 +72,25 @@ var actionButton = {
     index: 0,
     active: false,
     color: "red",
+    timer: 0,
     // A button that accepts input. Visible when it's correct
     onDown: function(e) {
+        if (!this.active) return
         // Tell the gamestuff it's hit
-        gameSprite.buttonHit(this.index)
+        gameSprite.buttonHit(this.index, this.timer)
+
+        let s = kontra.sprite(time)
+        s.value = this.timer
+        s.x = this.x
+        s.y = this.y
+        sprites.push(s)
+        this.timer = 0
     },
     update: function (dt) {
         this.active = gameSprite.beats[gameSprite.beatsIndex] === this.index
-        this.color = this.active ? COLOR_GREEN : COLOR_AMBER
+        this.timer = (this.active) ? this.timer + 1 : 0
+        this.color = (this.timer < 30) ? COLOR_GREEN : (this.timer < 60) ? COLOR_AMBER : 'red'
+        this.advance()
     },
     render: function (dt) {
         if (this.active) {
@@ -73,10 +100,12 @@ var actionButton = {
 }
 
 var game = {
-    buttonHit: function (i) {
+    result: [],
+    buttonHit: function (i, timer) {
         if (i === this.beats[this.beatsIndex]) {
             // Correct!
             console.log("correct!")
+            this.result.push(timer)
         } else {
             // Incorrect!
             console.log("Incorrect")
@@ -202,3 +231,4 @@ kontra.canvas.addEventListener('touchstart', function (e) {
     if (loop.isStopped) reset()
 })
 
+reset()
