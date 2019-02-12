@@ -63,7 +63,6 @@ var time = {
     }
 }
 
-
 var actionButton = {
     type: 'action',
     anchor: {x: 0.5, y: 0.5},
