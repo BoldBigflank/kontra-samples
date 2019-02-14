@@ -4,7 +4,7 @@ var sprites = []
 var ss // spritesheet
 
 // Constants
-const TILE_WIDTH = TILE_HEIGHT = 48
+const TILE_WIDTH = TILE_HEIGHT = 64
 const FPS = 60
 
 const COLOR_RED = '#d04648'
@@ -24,7 +24,6 @@ var Pieces = [
     { class: 'mate' },
     { class: 'mate2' },
     { class: 'mate3' },
-    { class: 'mate4' },
     { class: 'p1' }
 ]
 
@@ -41,7 +40,7 @@ function Lerp (min, max, t) {
 }
 
 function Damp (a, b, lambda, dt) {
-    return lerp(a, b, 1 - Math.exp(-lambda * dt))
+    return Lerp(a, b, 1 - Math.exp(-lambda * dt))
 }
 
 function GridAvailable(x, y) {
@@ -116,9 +115,6 @@ var piece = {
             this.gridX = pos.x
             this.gridY = pos.y
         }
-        let p = GridToWorldPos(this.gridX, this.gridY)
-        this.x = p.x
-        this.y = p.y
     },
     action: function() {
         this.cooldown = 1 * FPS
@@ -135,19 +131,9 @@ var piece = {
             }
         })
         if (!enemy) return
-        if (
-            (Math.abs(this.gridX - enemy.gridX) <= this.range && this.gridY == enemy.gridY) ||
-            (Math.abs(this.gridY - enemy.gridY) <= this.range && this.gridX == enemy.gridX)
-        ) {
-            // if in attack range, init an attack
-            enemy.health -= this.damage
-            var p = kontra.sprite(attackParticle)
-            p.x = enemy.x
-            p.y = enemy.y
-            sprites.push(p)
-            // Set attack cooldown
-            this.cooldown = 45
-        } else {
+
+        // Move if necessary
+        if ( enemyDistance > this.range ) {
             // else find a closer tile to move
             let moved = false
             if (!moved && enemy.gridX > this.gridX) {
@@ -174,14 +160,21 @@ var piece = {
                     moved = true
                 }
             }
-            if  (moved) {
-                let p = GridToWorldPos(this.gridX, this.gridY)
-                this.x = p.x
-                this.y = p.y
-            }
             // Set move cooldown
-            this.cooldown = 1 * FPS
+            this.cooldown = 1.0 * FPS +  Math.floor(Math.random() * 5)
+            enemyDistance = Math.abs(enemy.gridX - this.gridX) + Math.abs(enemy.gridY - this.gridY)
         }
+        // Attack if they're close enough
+        if (enemyDistance <= this.range) {
+            // if in attack range, init an attack
+            enemy.health -= this.damage
+            var p = kontra.sprite(attackParticle)
+            p.x = enemy.x
+            p.y = enemy.y
+            sprites.push(p)
+            // Set attack cooldown
+            this.cooldown = 1.1 * FPS + Math.floor(Math.random() * 5)
+        } 
     },
     update: function (dt) {
         if (this.selected && !kontra.pointer.pressed('left')) {
@@ -194,6 +187,10 @@ var piece = {
             this.x += dx
             this.y += dy
             this.lastPosition = {x: kontra.pointer.x , y: kontra.pointer.y }
+        } else if (this.gridX !== -1) {
+            let newPos = GridToWorldPos(this.gridX, this.gridY)
+            this.x = Damp(this.x, newPos.x, 16, dt)
+            this.y = Damp(this.y, newPos.y, 16, dt)
         }
 
         // If no health, die
@@ -221,9 +218,9 @@ var piece = {
 var grid = {
     type: 'grid',
     x: 48,
-    y: 48,
-    width: TILE_WIDTH * 8,
-    height: TILE_HEIGHT * 10,
+    y: 92,
+    width: TILE_WIDTH * 6,
+    height: TILE_HEIGHT * 6,
     color: COLOR_YELLOW,
     render: function (dt) {
         kontra.context.save()
@@ -282,7 +279,7 @@ let reset = function() {
             for (let i = 0; i < Pieces.length; i++) {
                 let s = kontra.sprite(piece)
                 s.team = team
-                s.x = 68 * i + 40;
+                s.x = 68 * i + 36;
                 s.y = y;
                 s.class = Pieces[i].class
                 s.animations = ss.animations
