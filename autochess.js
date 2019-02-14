@@ -13,10 +13,6 @@ const COLOR_YELLOW = '#c8913e'
 const COLOR_GREEN = '#466300'
 const COLOR_AMBER = '#FFBF00'
 
-var Background = {
-    src: 'https://via.placeholder.com/480/480/ffffff/000000/?text=background'
-}
-
 var Pieces = [
     { class: 'skeleton' },
     { class: 'parrot' },
@@ -240,9 +236,6 @@ var grid = {
 
 let reset = function() {
     sprites.forEach(s=>s.ttl=-1)
-    // let backgroundSprite = kontra.sprite(background);
-    // sprites.push(backgroundSprite);
-    
     kontra.assets.load(ssImage)
     .then((images) => {
         // Spritesheet
