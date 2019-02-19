@@ -38,6 +38,9 @@ var sketch = {
     height: PIXEL_SIZE * SPRITE_HEIGHT,
     data: null,
     color: COLOR_BLACK,
+    onDown: function() {
+        this.onOver()
+    },
     onOver: function() {
         if (!this.data) return
         if (kontra.pointer.pressed('left')) {
@@ -77,8 +80,47 @@ var sketch = {
                 kontra.context.save()
                 kontra.context.translate(x*PIXEL_SIZE, y*PIXEL_SIZE)
                 kontra.context.fillStyle = 'black'
-                kontra.context.fillRect(0,0,1,1)
+                kontra.context.fillRect(-1,-1,1,1)
                 kontra.context.restore()
+            }
+        }
+    }
+}
+
+let preview = {
+    width: SPRITE_WIDTH,
+    height: SPRITE_HEIGHT,
+    scale: 4,
+    color: 'black',
+    update: function(dt) {
+        if (!this.sketch) this.sketch = sprites.find(s => s.type === 'sketch')
+        this.width = SPRITE_WIDTH * this.scale
+        this.height = SPRITE_HEIGHT * this.scale
+        this.x = kontra.canvas.width - this.width
+        this.y = kontra.canvas.height - this.height
+    },
+    onDown: function(dt) {
+        this.scale = this.scale * 2
+        if (this.scale > 8) this.scale = 1
+    },
+    render: function(dt) {
+        if (!this.sketch || !this.sketch.data) return
+        kontra.context.save()
+        kontra.context.translate(this.x, this.y)
+        kontra.context.lineWidth = 1
+        kontra.context.strokeStyle = 'black'
+        kontra.context.strokeRect(0, 0, this.width, this.height)
+        kontra.context.restore()
+        for(let y = 0; y < SPRITE_HEIGHT; y++) {
+            for (let x = 0; x < SPRITE_WIDTH; x++) {
+                let cell = this.sketch.data[y][x]
+                if (cell !== -1) {
+                    kontra.context.save()
+                    kontra.context.translate(this.x + x*this.scale, this.y + y*this.scale)
+                    kontra.context.fillStyle = cell
+                    kontra.context.fillRect(0,0,this.scale,this.scale)
+                    kontra.context.restore()
+                }
             }
         }
     }
@@ -111,44 +153,6 @@ let swatch = {
     }
 }
 
-// var sketch = {
-//     x: 0,
-//     y: 0,
-//     width: kontra.canvas.width,
-//     height:kontra.canvas.height,
-//     lines: [],
-//     color: COLOR_GREEN,
-//     thickness: 5,
-//     onDown: function () {
-//         this.drawing = true;
-//         // Add a new line
-//         this.lines.push([{x: kontra.pointer.x, y: kontra.pointer.y}])
-//     },
-//     onOver: function () {
-//         if (this.drawing) {
-//             let line = this.lines[this.lines.length-1]
-//             line.push({x: kontra.pointer.x, y: kontra.pointer.y})
-//         }
-//     },
-//     onUp: function () {
-//         this.drawing = false;
-//     },
-//     render: function (dt) {
-//         let context = kontra.context
-//         context.strokeStyle = this.color
-//         context.lineWidth = this.thickness,
-//         this.lines.forEach((line) => {
-//             context.beginPath();
-//             context.moveTo(line[0].x, line[0].y)
-//             line.forEach((point) => {
-//                 context.lineTo(point.x, point.y)
-//             })
-//             // context.closePath()
-//             context.stroke()
-//         })
-//     }
-// }
-
 // Set up the GUI
 let reset = function() {
     sprites.forEach(s=>s.ttl=-1)
@@ -166,6 +170,9 @@ let reset = function() {
         sprites.push(c)
         kontra.pointer.track(c)
     }
+    let p = kontra.sprite(preview)
+    sprites.push(p)
+    kontra.pointer.track(p)
     sprites.find(s => s.type === 'swatch').onDown()
 }
 
