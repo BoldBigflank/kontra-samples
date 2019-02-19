@@ -82,6 +82,15 @@ let dial = {
             kontra.context.fillText((i+1)%10, numX, numY)
         }
 
+        // Stop circle
+        let angle = degreesToRadians(45)
+        let numX = Math.cos(angle) * 150
+        let numY = Math.sin(angle) * 150
+        kontra.context.beginPath()
+        kontra.context.fillStyle = '#8b8b8b'
+        kontra.context.arc(numX, numY, 30, 0, 2 * Math.PI)
+        kontra.context.fill()
+        
         // Finger wheel
         kontra.context.beginPath()
         kontra.context.arc(0, 0, 200, 0, 2 * Math.PI)
