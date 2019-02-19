@@ -2,6 +2,7 @@ kontra.init('canvas')
 var sprites = []
 
 // Constants
+const COLOR_ERASER = '#ffffff'
 const COLOR_BLACK = '#000000'
 const COLOR_TEAL = '#3c6e6f'
 const COLOR_GREEN = '#007727'
@@ -14,6 +15,7 @@ const COLOR_RED = '#9c0e3e'
 
 const COLORS = [
     COLOR_BLACK,
+    COLOR_ERASER,
     COLOR_TEAL,
     COLOR_GREEN,
     COLOR_YELLOW,
