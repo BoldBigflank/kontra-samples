@@ -86,6 +86,19 @@ var sketch = {
                     kontra.context.fillStyle = cell
                     kontra.context.fillRect(0,0,PIXEL_SIZE,PIXEL_SIZE)
                     kontra.context.restore()
+                } else {
+                    kontra.context.save()
+                    kontra.context.translate(x*PIXEL_SIZE, y*PIXEL_SIZE)
+                    kontra.context.fillStyle = "#d8d8d8"
+                    kontra.context.fillRect(0.0 * PIXEL_SIZE,  0.00 * PIXEL_SIZE, PIXEL_SIZE * 0.25, PIXEL_SIZE* 0.25)
+                    kontra.context.fillRect(0.25 * PIXEL_SIZE, 0.25 * PIXEL_SIZE, PIXEL_SIZE * 0.25, PIXEL_SIZE* 0.25)
+                    kontra.context.fillRect(0.5 * PIXEL_SIZE,  0.00 * PIXEL_SIZE, PIXEL_SIZE * 0.25, PIXEL_SIZE* 0.25)
+                    kontra.context.fillRect(0.75 * PIXEL_SIZE, 0.25 * PIXEL_SIZE, PIXEL_SIZE * 0.25, PIXEL_SIZE* 0.25)
+                    kontra.context.fillRect(0.0 * PIXEL_SIZE,  0.50 * PIXEL_SIZE, PIXEL_SIZE * 0.25, PIXEL_SIZE* 0.25)
+                    kontra.context.fillRect(0.25 * PIXEL_SIZE, 0.75 * PIXEL_SIZE, PIXEL_SIZE * 0.25, PIXEL_SIZE* 0.25)
+                    kontra.context.fillRect(0.5 * PIXEL_SIZE,  0.50 * PIXEL_SIZE, PIXEL_SIZE * 0.25, PIXEL_SIZE* 0.25)
+                    kontra.context.fillRect(0.75 * PIXEL_SIZE, 0.75 * PIXEL_SIZE, PIXEL_SIZE * 0.25, PIXEL_SIZE* 0.25)
+                    kontra.context.restore()
                 }
                 kontra.context.save()
                 kontra.context.translate(x*PIXEL_SIZE, y*PIXEL_SIZE)
