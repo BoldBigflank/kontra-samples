@@ -39,6 +39,12 @@ var sketch = {
     data: null,
     color: COLOR_BLACK,
     onDown: function() {
+        let y = Math.floor((kontra.pointer.y - this.y) / PIXEL_SIZE)
+        let x = Math.floor((kontra.pointer.x - this.x) / PIXEL_SIZE)
+        if (x >= 0 && y >= 0 && x < SPRITE_WIDTH && y < SPRITE_HEIGHT) {
+            if (this.data[y][x] === this.color)
+                this.color = -1
+        }
         this.onOver()
     },
     onOver: function() {
@@ -47,9 +53,13 @@ var sketch = {
             // Color the hovered pixel with the selected color
             let y = Math.floor((kontra.pointer.y - this.y) / PIXEL_SIZE)
             let x = Math.floor((kontra.pointer.x - this.x) / PIXEL_SIZE)
-            if (x >= 0 && y >= 0 && x < SPRITE_WIDTH && y < SPRITE_HEIGHT)
+            if (x >= 0 && y >= 0 && x < SPRITE_WIDTH && y < SPRITE_HEIGHT) {
                 this.data[y][x] = this.color
+            }
         }
+    },
+    onUp: function() {
+        this.color = sprites.find(s => s.selected && s.type === 'swatch').color
     },
     update: function(dt) {
         if (!this.data) {
