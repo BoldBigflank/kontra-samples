@@ -62,6 +62,7 @@ var sketch = {
         this.color = sprites.find(s => s.selected && s.type === 'swatch').color
     },
     update: function(dt) {
+
         if (!this.data) {
             this.data = []
             for(let y = 0; y < SPRITE_HEIGHT; y++) {
@@ -116,36 +117,62 @@ let preview = {
     scale: 4,
     color: 'black',
     update: function(dt) {
+        // Size
         if (!this.sketch) this.sketch = sprites.find(s => s.type === 'sketch')
         this.width = SPRITE_WIDTH * this.scale
         this.height = SPRITE_HEIGHT * this.scale
         this.x = kontra.canvas.width - this.width
         this.y = kontra.canvas.height - this.height
+
+        // SAVE THE IMAGE
+        if (!this.hiddenCanvas){
+            this.hiddenCanvas = document.createElement('canvas');
+        }
+        this.hiddenCanvas.width = this.width
+        this.hiddenCanvas.height = this.height
+        let c = this.hiddenCanvas
+        let ctx = c.getContext('2d')
+
+        ctx.clearRect(0,0,c.width, c.height)
+        this.drawImage(this.hiddenCanvas)
+        if (!this.imageElement) {
+            this.imgElement = document.getElementById('preview')
+        }
+        this.imgElement.style.width = this.width
+        this.imgElement.style.height = this.height
+        this.imgElement.src = this.hiddenCanvas.toDataURL()
     },
-    onDown: function(dt) {
+    onDown: function(e) {
         this.scale = this.scale * 2
         if (this.scale > 8) this.scale = 1
     },
-    render: function(dt) {
+    drawImage: function(canvas) {
         if (!this.sketch || !this.sketch.data) return
+        let context = canvas.getContext('2d')
+        for(let y = 0; y < SPRITE_HEIGHT; y++) {
+            for (let x = 0; x < SPRITE_WIDTH; x++) {
+                let cell = this.sketch.data[y][x]
+                if (cell !== -1) {
+                    context.save()
+                    context.translate(x*this.scale,y*this.scale)
+                    context.fillStyle = cell
+                    context.fillRect(0,0,this.scale,this.scale)
+                    context.restore()
+                }
+            }
+        }
+        
+    },
+    render: function(dt) {
+        // The box
         kontra.context.save()
         kontra.context.translate(this.x, this.y)
         kontra.context.lineWidth = 1
         kontra.context.strokeStyle = 'black'
         kontra.context.strokeRect(0, 0, this.width, this.height)
+        // The image
+        this.drawImage(kontra.canvas)
         kontra.context.restore()
-        for(let y = 0; y < SPRITE_HEIGHT; y++) {
-            for (let x = 0; x < SPRITE_WIDTH; x++) {
-                let cell = this.sketch.data[y][x]
-                if (cell !== -1) {
-                    kontra.context.save()
-                    kontra.context.translate(this.x + x*this.scale, this.y + y*this.scale)
-                    kontra.context.fillStyle = cell
-                    kontra.context.fillRect(0,0,this.scale,this.scale)
-                    kontra.context.restore()
-                }
-            }
-        }
     }
 }
 
