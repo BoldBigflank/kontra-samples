@@ -14,13 +14,14 @@ let boat = {
     anchor: {x: 0.5, y: 0.5},
     width: 24,
     height: 8,
-    scale: 12,
+    scale: 2,
     x: kontra.canvas.width * 0.5,
     y: kontra.canvas.height * 0.5,
     color: 'red',
     loaded: false,
     update: function(dt) {
-        this.rotation += degreesToRadians(ROTATE_SPEED)
+        // this.rotation += degreesToRadians(ROTATE_SPEED)
+        this.rotation = Math.atan2(this.dy, this.dx)
         if (!this.loaded) {
             this.loaded = true
             kontra.assets.load(boatImage)
@@ -28,6 +29,11 @@ let boat = {
                     this.image = kontra.assets.images[boatImage]
                 })
         }
+        if (this.x < 0) this.dx = Math.abs(this.dx)
+        if (this.x > kontra.canvas.width) this.dx = -1 * Math.abs(this.dx)
+        if (this.y < 0) this.dy = Math.abs(this.dy)
+        if (this.y > kontra.canvas.height) this.dy = -1 * Math.abs(this.dy)
+        this.advance()
     },
     render: function(dt) {
         if (!this.image) {
@@ -55,21 +61,33 @@ let boat = {
     }
 }
 // Set up the GUI
-let reset = function() {
+let reset = function(count) {
     sprites.forEach(s=>s.ttl=-1)
-    let d = kontra.sprite(boat)
-    sprites.push(d)
-    kontra.pointer.track(d)
+    for (let i = 0; i < 100; i++) {
+        let d = kontra.sprite(boat)
+        d.x = Math.random() * kontra.canvas.width
+        d.y = Math.random() * kontra.canvas.height
+        d.dx = Math.random() * 2 - 1
+        d.dy = Math.random() * 2 - 1
+        d.ddx = Math.random() * 0.1 - 0.05
+        d.ddy = Math.random() * 0.1 - 0.05
+        d.rotation = Math.random() * 2 * Math.PI
+        sprites.push(d)
+        kontra.pointer.track(d)
+    }
 }
 
 kontra.keys.bind('r', function(e){
     reset()
 })
+kontra.keys.bind('')
 
 // Boilerplate gameloop
 var loop = kontra.gameLoop({
     update(dt) {
         sprites.forEach(sprite => sprite.update(dt))
+        // Sort based on y
+        sprites = sprites.sort((a,b) => a.y - b.y )
         sprites = sprites.filter(sprite => sprite.isAlive());
     },
     render(dt) {
