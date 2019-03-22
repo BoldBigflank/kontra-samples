@@ -33,6 +33,8 @@ let boat = {
         if (this.x > kontra.canvas.width) this.dx = -1 * Math.abs(this.dx)
         if (this.y < 0) this.dy = Math.abs(this.dy)
         if (this.y > kontra.canvas.height) this.dy = -1 * Math.abs(this.dy)
+        this.ddx = (kontra.canvas.width * 0.5 - this.x) * 0.0001
+        this.ddy = (kontra.canvas.height * 0.5 - this.y) * 0.0001
         this.advance()
     },
     render: function(dt) {
@@ -69,8 +71,8 @@ let reset = function(count) {
         d.y = Math.random() * kontra.canvas.height
         d.dx = Math.random() * 2 - 1
         d.dy = Math.random() * 2 - 1
-        d.ddx = Math.random() * 0.1 - 0.05
-        d.ddy = Math.random() * 0.1 - 0.05
+        // d.ddx = Math.random() * 0.1 - 0.05
+        // d.ddy = Math.random() * 0.1 - 0.05
         d.rotation = Math.random() * 2 * Math.PI
         sprites.push(d)
         kontra.pointer.track(d)
