@@ -14,7 +14,7 @@ let boat = {
     anchor: {x: 0.5, y: 0.5},
     width: 24,
     height: 8,
-    scale: 2,
+    scale: 4,
     x: kontra.canvas.width * 0.5,
     y: kontra.canvas.height * 0.5,
     color: 'red',
@@ -63,7 +63,7 @@ let boat = {
 // Set up the GUI
 let reset = function(count) {
     sprites.forEach(s=>s.ttl=-1)
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 10; i++) {
         let d = kontra.sprite(boat)
         d.x = Math.random() * kontra.canvas.width
         d.y = Math.random() * kontra.canvas.height
