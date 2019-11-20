@@ -18,6 +18,9 @@ canvas {
   width:84%;
   max-width:512px;
 }
+canvas.fullCanvas {
+  width: 100%;
+}
 
 /*Used for hiding the video element but also autoplaying on iOS Safari*/
 .visuallyhidden { 
